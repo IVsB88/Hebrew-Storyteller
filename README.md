@@ -32,8 +32,7 @@ Gmail account for sending emails
 Setup
 
 Import the workflow:
-bash# Download the workflow
-curl -O https://raw.githubusercontent.com/YOUR-USERNAME/n8n-hebrew-storyteller/main/workflow.json
+
 
 Configure credentials in n8n:
 
