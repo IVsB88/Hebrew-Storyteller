@@ -1,5 +1,7 @@
 🎭 Hebrew Storyteller - n8n Workflow
+
 AI-powered personalized Hebrew storytelling for children ages 3-5. Creates custom stories, converts them to speech, and delivers interactive HTML audio players via email.
+
 ✨ Features
 
 🎯 Personalized Stories - Custom Hebrew stories based on child's name, age, and theme
