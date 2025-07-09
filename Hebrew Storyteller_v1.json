@@ -1,0 +1,381 @@
+{
+  "name": "Hebrew Storyteller",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hebrew-story",
+        "options": {
+          "responseData": "success"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [660, -100],
+      "id": "40de0c06-1108-42ca-817e-bdc097b0b557",
+      "name": "Webhook",
+      "webhookId": "WEBHOOK_ID_PLACEHOLDER"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "364fc17f-cd57-45e9-8c99-e7bbb870a7ad",
+              "leftValue": "={{ $json.child_name }}",
+              "rightValue": "is",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2f28e578-5154-4bfc-adb2-5f9d2d251026",
+              "leftValue": "={{ $json.age }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "6781d248-942b-4854-8b8c-21c8b3f1d86c",
+              "leftValue": "={{ $json.age }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            },
+            {
+              "id": "e0da3add-c439-4ad0-9ab3-84b7a3fbbbad",
+              "leftValue": "={{ $json.story_theme }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c28505ca-7f6d-43d0-9000-ea43813faa44",
+              "leftValue": "={{ $json.parent_email }}",
+              "rightValue": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1320, -100],
+      "id": "9e01c609-167b-40db-9420-4509535206b8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-nano",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-NANO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "אתה מספר סיפורים מקצועי לילדים בגילאי 3-5. כתוב סיפורים בעברית פשוטה וברורה, באורך של 300-400 מילים. כל סיפור חייב להתחיל ב'שלום [שם הילד]! בוא נשמע סיפור מיוחד...' ולהסתיים ב'ועכשיו [שם הילד], הגיע הזמן לישון. לילה טוב!'. השתמש במשפטים קצרים, מילים פשוטות ומבנה ברור עם התחלה, אמצע וסוף.",
+              "role": "system"
+            },
+            {
+              "content": "={{ 'כתוב סיפור ל' + $json.child_name + ' בן/בת ' + $json.age + ' שנים על הנושא: ' + $json.story_theme + '. הסיפור צריך להיות מתאים לגיל, חינוכי ומרגיע לפני השינה.' }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "options": {
+          "maxTokens": 800,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [1540, -100],
+      "id": "9d891252-47d3-4760-ae6c-322c19e81682",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account - ADD YOUR CREDENTIALS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://texttospeech.googleapis.com/v1/text:synthesize?key=YOUR_GOOGLE_TTS_API_KEY",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": {\n    \"text\": {{ JSON.stringify($json.choices[0].message.content) }}\n  },\n  \"voice\": {\n    \"languageCode\": \"he-IL\",\n    \"name\": \"he-IL-Standard-A\",\n    \"ssmlGender\": \"FEMALE\"\n  },\n  \"audioConfig\": {\n    \"audioEncoding\": \"MP3\",\n    \"speakingRate\": 0.9,\n    \"pitch\": 0\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1900, -100],
+      "id": "4ed9bd46-10c5-4963-88a3-bf4aa519cca1",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleApi": {
+          "id": "GOOGLE_SERVICE_ACCOUNT_ID",
+          "name": "Google Service Account - ADD YOUR CREDENTIALS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d589ccd4-6f0d-4619-9249-81c7a7948b15",
+              "name": "intro_base64",
+              "value": "// ADD YOUR INTRO MUSIC BASE64 HERE",
+              "type": "string"
+            },
+            {
+              "id": "3e400cfa-a290-45f9-8036-0fae89df075c",
+              "name": "outro_base64",
+              "value": "// ADD YOUR OUTRO MUSIC BASE64 HERE",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, -100],
+      "id": "964f2e97-a3a9-4c50-aa41-4d2ff59445e4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Debug first to see what we're receiving\nconst input = $input.first();\nconsole.log('Input keys:', Object.keys(input));\nconsole.log('Has binary?', !!input.binary);\nconsole.log('Binary keys:', input.binary ? Object.keys(input.binary) : 'No binary');\n\n// Get story audio from TTS - check different possible locations\nlet storyBase64;\n\n// Try different ways to access the binary data\nif (input.binary && input.binary.data) {\n  storyBase64 = input.binary.data.data;\n  console.log('Found story audio in binary.data.data');\n} else if (input.binary && input.binary.audio) {\n  storyBase64 = input.binary.audio.data;\n  console.log('Found story audio in binary.audio.data');\n} else if (input.json && input.json.audioContent) {\n  // Google TTS might return base64 in JSON\n  storyBase64 = input.json.audioContent;\n  console.log('Found story audio in json.audioContent');\n} else {\n  // Log what we have for debugging\n  console.log('Binary structure:', JSON.stringify(input.binary, null, 2));\n  console.log('JSON structure:', JSON.stringify(input.json, null, 2));\n  throw new Error('Could not find story audio in expected location');\n}\n\n// Get intro/outro from Edit Fields\nconst introBase64 = $('Edit Fields').item.json.intro_base64;\nconst outroBase64 = $('Edit Fields').item.json.outro_base64;\n\n// Get child details from webhook\nconst webhookData = $('Webhook').item.json;\n// Handle both body and direct access\nconst childName = webhookData.body?.childName || webhookData.childName;\nconst age = webhookData.body?.age || webhookData.age;\nconst theme = webhookData.body?.theme || webhookData.theme;\nconst parentEmail = webhookData.body?.parentEmail || webhookData.parentEmail;\n\nconsole.log('Data collected:', {\n  hasIntro: !!introBase64,\n  hasStory: !!storyBase64,\n  hasOutro: !!outroBase64,\n  childName,\n  age,\n  theme,\n  parentEmail\n});\n\n// Pass everything forward\nreturn [{\n  json: {\n    // Audio data\n    introBase64,\n    storyBase64,\n    outroBase64,\n    \n    // Child details\n    childName,\n    age,\n    theme,\n    parentEmail,\n    \n    // Metadata\n    timestamp: new Date().toISOString(),\n    storyLength: storyBase64 ? storyBase64.length : 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2120, -100],
+      "id": "c408598d-8b9f-42f1-8223-7281bf80e191",
+      "name": "Prepare Audio Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all data from the previous node (Prepare Audio Data)\nconst data = $input.first().json;\n\n// Extract all the data we need\nconst introBase64 = data.introBase64;\nconst storyBase64 = data.storyBase64;\nconst outroBase64 = data.outroBase64;\n\nconst childName = data.childName;\nconst age = data.age;\nconst theme = data.theme;\nconst parentEmail = data.parentEmail;\n\n// Validate we have all required data\nif (!introBase64 || !storyBase64 || !outroBase64) {\n  throw new Error(`Missing audio data: intro=${!!introBase64}, story=${!!storyBase64}, outro=${!!outroBase64}`);\n}\n\n// Get current date in Hebrew\nconst date = new Date().toLocaleDateString('he-IL', {\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\n// Create the full interactive HTML content with embedded audio player\n// NOTE: This creates a complete HTML file with embedded base64 audio\n// The HTML includes: Hebrew RTL layout, interactive audio player, \n// progress tracking, and WhatsApp sharing functionality\nconst htmlContent = `<!-- COMPLETE HTML PLAYER CODE HERE -->\n<!-- Includes: Hebrew storytelling interface, embedded audio player, -->\n<!-- progress tracking, and social sharing features -->`;\n\n// Create filename\nconst fileName = `story-${childName}-${Date.now()}.html`;\n\nconsole.log('HTML generated successfully');\nconsole.log(`File size: ${Math.round(htmlContent.length / 1024)} KB`);\n\n// Return BOTH JSON and binary data for the hybrid approach\nreturn [{\n  json: {\n    fileName: fileName,\n    parentEmail: parentEmail,\n    childName: childName,\n    theme: theme,\n    age: age,\n    fileSize: Math.round(htmlContent.length / 1024) + ' KB',\n    timestamp: new Date().toISOString()\n  },\n  binary: {\n    data: {\n      data: Buffer.from(htmlContent).toString('base64'),\n      mimeType: 'text/html',\n      fileName: fileName\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2340, -100],
+      "id": "06cb7419-357c-4741-bc2a-3f13e329d329",
+      "name": "Generate HTML Player"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the body string into an object\nconst parsedBody = JSON.parse($input.first().json.body);\n\n// Return a clean data structure\nreturn {\n  child_name: parsedBody.child_name,\n  age: parsedBody.age,\n  story_theme: parsedBody.story_theme,\n  parent_email: parsedBody.parent_email,\n  // Keep original data for reference if needed\n  _original: $input.first().json\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, -100],
+      "id": "472a6243-83a2-4c81-bb01-a46f32094d5d",
+      "name": "Parse Webhook Data"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "name": "={{ $json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "mode": "list",
+          "cachedResultName": "Story Teller Folder",
+          "cachedResultUrl": "// ADD YOUR GOOGLE DRIVE FOLDER URL"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [2560, -100],
+      "id": "43da3cd2-e158-475f-8a59-f5993f3fe69c",
+      "name": "Upload file",
+      "credentials": {
+        "googleApi": {
+          "id": "GOOGLE_SERVICE_ACCOUNT_ID",
+          "name": "Google Service Account - ADD YOUR CREDENTIALS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Parse Webhook Data').item.json.parent_email }}",
+        "subject": "=הסיפור של {{ $('Parse Webhook Data').item.json.child_name }} מוכן!",
+        "message": "=<!DOCTYPE html>\n<html dir=\"rtl\" lang=\"he\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <style>\n        /* Hebrew RTL email styling */\n        body { font-family: Arial, Hebrew, sans-serif; direction: rtl; }\n        .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; }\n        /* Additional email styling removed for brevity */\n    </style>\n</head>\n<body>\n    <!-- Hebrew email template with story details and download link -->\n    <div class=\"container\">\n        <h1>🎉 הסיפור של {{ $('Parse Webhook Data').item.json.child_name }} מוכן!</h1>\n        <!-- Email content continues... -->\n    </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2800, -100],
+      "id": "d440a68f-0ac3-4d75-ad78-817366ebbf01",
+      "name": "Send a message",
+      "webhookId": "EMAIL_WEBHOOK_ID_PLACEHOLDER",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account - ADD YOUR CREDENTIALS"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Prepare Audio Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Parse Webhook Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Audio Data": {
+      "main": [
+        [
+          {
+            "node": "Generate HTML Player",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Webhook Data": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate HTML Player": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": []
+}
